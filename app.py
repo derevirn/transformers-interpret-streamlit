@@ -4,11 +4,10 @@ import logging
 import os
 
 import pandas as pd
-import psutil
+#import psutil
 import streamlit as st
 from PIL import Image
 from streamlit import components
-from streamlit.caching import clear_cache
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from transformers_interpret import SequenceClassificationExplainer
 
@@ -18,21 +17,21 @@ logging.basicConfig(
 )
 
 
-def print_memory_usage():
-    logging.info(f"RAM memory % used: {psutil.virtual_memory()[2]}")
+#def print_memory_usage():
+#    logging.info(f"RAM memory % used: {psutil.virtual_memory()[2]}")
 
 
 @st.cache(allow_output_mutation=True, suppress_st_warning=True, max_entries=1)
 def load_model(model_name):
     return (
         AutoModelForSequenceClassification.from_pretrained(model_name),
-        AutoTokenizer.from_pretrained(model_name),
+        AutoTokenizer.from_pretrained('bert-base-uncased'),
     )
 
 
 def main():
 
-    st.title("Transformers Interpet Demo App")
+    st.title("COVID-19 Fake News Detection")
 
     image = Image.open("./images/tight@1920x_transparent.png")
     st.sidebar.image(image, use_column_width=True)
@@ -45,17 +44,7 @@ def main():
 
     # uncomment the options below to test out the app with a variety of classification models.
     models = {
-        # "textattack/distilbert-base-uncased-rotten-tomatoes": "",
-        # "textattack/bert-base-uncased-rotten-tomatoes": "",
-        # "textattack/roberta-base-rotten-tomatoes": "",
-        # "mrm8488/bert-mini-finetuned-age_news-classification": "BERT-Mini finetuned on AG News dataset. Predicts news class (sports/tech/business/world) of text.",
-        # "nateraw/bert-base-uncased-ag-news": "BERT finetuned on AG News dataset. Predicts news class (sports/tech/business/world) of text.",
-        "distilbert-base-uncased-finetuned-sst-2-english": "DistilBERT model finetuned on SST-2 sentiment analysis task. Predicts positive/negative sentiment.",
-        # "ProsusAI/finbert": "BERT model finetuned to predict sentiment of financial text. Finetuned on Financial PhraseBank data. Predicts positive/negative/neutral.",
-        "sampathkethineedi/industry-classification": "DistilBERT Model to classify a business description into one of 62 industry tags.",
-        "MoritzLaurer/policy-distilbert-7d": "DistilBERT model finetuned to classify text into one of seven political categories.",
-        # # "MoritzLaurer/covid-policy-roberta-21": "(Under active development ) RoBERTA model finetuned to identify COVID policy measure classes ",
-        # "mrm8488/bert-tiny-finetuned-sms-spam-detection": "Tiny bert model finetuned for spam detection. 0 == not spam, 1 == spam",
+        './model/checkpoint-3000': 'Fake News'
     }
     model_name = st.sidebar.selectbox(
         "Choose a classification model", list(models.keys())
@@ -81,7 +70,7 @@ def main():
         "Explanation class: The class you would like to explain output with respect to.",
         explanation_classes,
     )
-    my_expander = st.beta_expander(
+    my_expander = st.expander(
         "Click here for description of models and their tasks"
     )
     with my_expander:
@@ -96,7 +85,7 @@ def main():
     )
 
     if st.button("Interpret Text"):
-        print_memory_usage()
+       # print_memory_usage()
 
         st.text("Output")
         with st.spinner("Interpreting your text (This may take some time)"):
@@ -113,7 +102,7 @@ def main():
                 )
 
         if word_attributions:
-            word_attributions_expander = st.beta_expander(
+            word_attributions_expander = st.expander(
                 "Click here for raw word attributions"
             )
             with word_attributions_expander:
